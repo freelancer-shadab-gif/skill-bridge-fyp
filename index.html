@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skill Bridge</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+  <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['DM Sans', 'sans-serif'],
+                        mono: ['Space Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+  <style>
+        html, body { height: 100%; margin: 0; }
+        .app-shell { height: 100%; overflow-y: auto; overflow-x: hidden; }
+        .glass-card { background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.4); }
+        .fade-in { animation: fadeIn 0.6s ease forwards; opacity: 0; }
+        .slide-up { animation: slideUp 0.5s ease forwards; opacity: 0; }
+        @keyframes fadeIn { to { opacity: 1; } }
+        @keyframes slideUp { to { opacity: 1; transform: translateY(0); } from { transform: translateY(20px); } }
+        .stagger-1 { animation-delay: 0.1s; }
+        .stagger-2 { animation-delay: 0.2s; }
+        .stagger-3 { animation-delay: 0.3s; }
+        .stagger-4 { animation-delay: 0.4s; }
+        .match-bar { transition: width 1s ease; }
+        .chat-bubble { max-width: 80%; }
+        .nav-link { position: relative; }
+        .nav-link::after { content:''; position:absolute; bottom:-2px; left:0; width:0; height:2px; background:#2563eb; transition: width 0.3s; }
+        .nav-link:hover::after { width:100%; }
+        .pulse-dot { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100%{ transform:scale(1); opacity:1; } 50%{ transform:scale(1.5); opacity:0.5; } }
+        .roadmap-line { position: relative; }
+        .roadmap-line::before { content:''; position:absolute; left:15px; top:32px; bottom:0; width:2px; background:#dbeafe; }
+        .roadmap-line:last-child::before { display:none; }
+    </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full bg-slate-50 font-sans">
+  <!-- Quick Start Guide (Remove after reading) -->
+  <style>
+    .startup-guide { position: fixed; bottom: 4px; right: 4px; width: 320px; background: #1e293b; color: #f1f5f9; padding: 12px; border-radius: 8px; font-size: 11px; z-index: 9999; max-height: 90vh; overflow-y: auto; }
+    .startup-guide h4 { margin: 0 0 8px 0; color: #60a5fa; font-weight: bold; }
+    .startup-guide p { margin: 4px 0; line-height: 1.4; }
+    .startup-guide code { background: #0f172a; padding: 2px 4px; border-radius: 3px; }
+  </style>
+  <div class="startup-guide">
+   <h4>?? VS CODE SETUP</h4>
+   <p><strong>Step 1:</strong> Save this file as <code>index.html</code></p>
+   <p><strong>Step 2:</strong> Install "Live Server" extension (Right-click file ? Open with Live Server)</p>
+   <p><strong>Step 3:</strong> Site opens on <code>localhost:5500</code></p>
+   <hr style="border: 0; border-top: 1px solid #475569; margin: 8px 0;">
+   <h4>?? PUBLISH OPTIONS</h4>
+   <p>? <strong>Netlify:</strong> Drag-drop HTML file (Free)</p>
+   <p>? <strong>Vercel:</strong> GitHub + auto-deploy</p>
+   <p>? <strong>GitHub Pages:</strong> Free hosting with domain</p>
+   <p>? <strong>Firebase:</strong> Google's hosting</p>
+   <p><strong>Best for beginners:</strong> Netlify (fastest)</p>
+   <hr style="border: 0; border-top: 1px solid #475569; margin: 8px 0;">
+   <p style="color: #fbbf24;"><strong>?? Note:</strong> This is frontend-only. For backend/database, use Node.js or Python.</p>
+   <p style="color: #10b981;"><strong>? Works:</strong> Assessment, Careers, Roadmaps, Videos, Chat, Auth (local storage)</p>
+  </div>
+  <div class="app-shell" id="app">
+   <!-- Navigation -->
+   <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+     <div class="flex items-center justify-between h-16">
+      <div class="flex items-center gap-2">
+       <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+        <i data-lucide="compass" class="w-5 h-5 text-white"></i>
+       </div><span id="nav-title" class="font-bold text-lg text-slate-800">Skill Bridge</span>
+      </div>
+      <div class="hidden md:flex items-center gap-6">
+       <button onclick="showSection('home')" class="nav-link text-sm font-medium text-slate-600 hover:text-blue-600">Home</button> <button onclick="showSection('assess')" class="nav-link text-sm font-medium text-slate-600 hover:text-blue-600">Assessment</button> <button onclick="showSection('careers')" class="nav-link text-sm font-medium text-slate-600 hover:text-blue-600">Careers</button> <button onclick="showSection('roadmaps')" class="nav-link text-sm font-medium text-slate-600 hover:text-blue-600">Roadmaps</button> <button onclick="showSection('videos')" class="nav-link text-sm font-medium text-slate-600 hover:text-blue-600">Learn</button>
+      </div>
+      <div class="flex items-center gap-3">
+       <button id="auth-btn" onclick="showSection('auth')" class="text-sm font-medium px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition">Sign In</button> <button class="md:hidden" onclick="toggleMobileMenu()"><i data-lucide="menu" class="w-5 h-5 text-slate-600"></i></button>
+      </div>
+     </div>
+    </div>
+    <div id="mobile-menu" class="hidden md:hidden border-t border-slate-100 bg-white px-4 py-3 space-y-2">
+     <button onclick="showSection('home');toggleMobileMenu()" class="block w-full text-left text-sm py-2 text-slate-600">Home</button> <button onclick="showSection('assess');toggleMobileMenu()" class="block w-full text-left text-sm py-2 text-slate-600">Assessment</button> <button onclick="showSection('careers');toggleMobileMenu()" class="block w-full text-left text-sm py-2 text-slate-600">Careers</button> <button onclick="showSection('roadmaps');toggleMobileMenu()" class="block w-full text-left text-sm py-2 text-slate-600">Roadmaps</button> <button onclick="showSection('videos');toggleMobileMenu()" class="block w-full text-left text-sm py-2 text-slate-600">Learn</button>
+    </div>
+   </nav><!-- Hero Section -->
+   <section id="section-home" class="relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-indigo-50"></div>
+    <div class="absolute top-20 right-10 w-72 h-72 bg-blue-200/30 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-10 left-10 w-56 h-56 bg-indigo-200/20 rounded-full blur-3xl"></div>
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
+     <div class="text-center max-w-3xl mx-auto">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium mb-6 fade-in">
+       <span class="pulse-dot w-2 h-2 bg-blue-500 rounded-full inline-block"></span> AI-Powered Career Intelligence
+      </div>
+      <h1 id="hero-heading" class="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight fade-in stagger-1">Discover Your Perfect<br><span class="text-blue-600">Career Path</span></h1>
+      <p id="hero-subtext" class="mt-6 text-lg text-slate-500 max-w-2xl mx-auto fade-in stagger-2">AI-powered career guidance tailored to your unique profile. Get personalized suggestions, learning roadmaps, and expert recommendations.</p>
+      <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center fade-in stagger-3">
+       <button onclick="showSection('assess')" class="px-8 py-3.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-200 transition transform hover:scale-105"> Start Assessment ? </button> <button onclick="showSection('careers')" class="px-8 py-3.5 bg-white text-slate-700 font-semibold rounded-xl border border-slate-200 hover:border-blue-300 transition"> Explore Careers </button>
+      </div>
+      <div class="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-6 fade-in stagger-4">
+       <div class="text-center">
+        <div class="text-2xl font-bold text-slate-800">
+         12+
+        </div>
+        <div class="text-xs text-slate-500">
+         Career Paths
+        </div>
+       </div>
+       <div class="text-center">
+        <div class="text-2xl font-bold text-slate-800">
+         AI
+        </div>
+        <div class="text-xs text-slate-500">
+         Powered Analysis
+        </div>
+       </div>
+       <div class="text-center">
+        <div class="text-2xl font-bold text-slate-800">
+         Free
+        </div>
+        <div class="text-xs text-slate-500">
+         Resources
+        </div>
+       </div>
+       <div class="text-center">
+        <div class="text-2xl font-bold text-slate-800">
+         24/7
+        </div>
+        <div class="text-xs text-slate-500">
+         AI Chatbot
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </section><!-- Assessment Section -->
+   <section id="section-assess" class="hidden">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+     <div class="text-center mb-12">
+      <h2 class="text-3xl font-bold text-slate-800">Career Assessment</h2>
+      <p class="mt-2 text-slate-500">Tell us about yourself and let AI find your ideal career</p>
+     </div>
+     <form id="assess-form" class="glass-card rounded-2xl p-8 shadow-xl space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+       <div>
+        <label for="education" class="block text-sm font-medium text-slate-700 mb-1">Education Level</label> <select id="education" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"> <option value="">Select...</option> <option>High School</option> <option>Bachelor's Degree</option> <option>Master's Degree</option> <option>PhD</option> <option>Self-Taught</option> </select>
+       </div>
+       <div>
+        <label for="field" class="block text-sm font-medium text-slate-700 mb-1">Field / Degree</label> <input id="field" type="text" placeholder="e.g. Computer Science" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+       </div>
+       <div>
+        <label for="skills" class="block text-sm font-medium text-slate-700 mb-1">Skills</label> <input id="skills" type="text" placeholder="e.g. Python, Networking, Design" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+       </div>
+       <div>
+        <label for="interests" class="block text-sm font-medium text-slate-700 mb-1">Interests</label> <input id="interests" type="text" placeholder="e.g. Security, AI, Marketing" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+       </div>
+       <div>
+        <label for="experience" class="block text-sm font-medium text-slate-700 mb-1">Experience (years)</label> <select id="experience" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"> <option value="">Select...</option> <option>0 - Fresher</option> <option>1-2 years</option> <option>3-5 years</option> <option>5+ years</option> </select>
+       </div>
+       <div>
+        <label for="strengths" class="block text-sm font-medium text-slate-700 mb-1">Strengths</label> <input id="strengths" type="text" placeholder="e.g. Problem-solving, Creative" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+       </div>
+      </div>
+      <div>
+       <label for="worktype" class="block text-sm font-medium text-slate-700 mb-1">Preferred Work Type</label>
+       <div class="flex flex-wrap gap-3 mt-2">
+        <label class="cursor-pointer"><input type="radio" name="worktype" value="Remote" class="peer hidden"><span class="px-4 py-2 rounded-lg border border-slate-200 text-sm peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 transition">Remote</span></label> <label class="cursor-pointer"><input type="radio" name="worktype" value="Office" class="peer hidden"><span class="px-4 py-2 rounded-lg border border-slate-200 text-sm peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 transition">Office</span></label> <label class="cursor-pointer"><input type="radio" name="worktype" value="Hybrid" class="peer hidden"><span class="px-4 py-2 rounded-lg border border-slate-200 text-sm peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 transition">Hybrid</span></label> <label class="cursor-pointer"><input type="radio" name="worktype" value="Freelance" class="peer hidden"><span class="px-4 py-2 rounded-lg border border-slate-200 text-sm peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 transition">Freelance</span></label>
+       </div>
+      </div><button type="submit" class="w-full py-3.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-200 transition transform hover:scale-[1.02]"> <span id="assess-btn-text">Analyze My Profile with AI</span> </button>
+     </form>
+     <div id="results" class="hidden mt-10 space-y-6"></div>
+    </div>
+   </section><!-- Careers Section -->
+   <section id="section-careers" class="hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+     <div class="text-center mb-12">
+      <h2 class="text-3xl font-bold text-slate-800">Explore Career Paths</h2>
+      <p class="mt-2 text-slate-500">Browse all available career options with detailed information</p>
+     </div>
+     <div id="career-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </div>
+   </section><!-- Roadmaps Section -->
+   <section id="section-roadmaps" class="hidden">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+     <div class="text-center mb-12">
+      <h2 class="text-3xl font-bold text-slate-800">Learning Roadmaps</h2>
+      <p class="mt-2 text-slate-500">Step-by-step paths from beginner to expert</p>
+     </div>
+     <div class="mb-6">
+      <select id="roadmap-select" onchange="showRoadmap(this.value)" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 bg-white font-medium"> <option value="">Select a career to view roadmap...</option> </select>
+     </div>
+     <div id="roadmap-content" class="space-y-4"></div>
+    </div>
+   </section><!-- Videos Section -->
+   <section id="section-videos" class="hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+     <div class="text-center mb-12">
+      <h2 class="text-3xl font-bold text-slate-800">YouTube Learning Hub</h2>
+      <p class="mt-2 text-slate-500">Curated video recommendations for your career journey</p>
+     </div>
+     <div id="video-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </div>
+   </section><!-- Auth Section -->
+   <section id="section-auth" class="hidden">
+    <div class="max-w-md mx-auto px-4 py-16">
+     <div class="glass-card rounded-2xl p-8 shadow-xl">
+      <div class="text-center mb-8">
+       <div class="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center mx-auto mb-4">
+        <i data-lucide="user" class="w-6 h-6 text-white"></i>
+       </div>
+       <h2 id="auth-title" class="text-2xl font-bold text-slate-800">Sign In</h2>
+      </div>
+      <form id="auth-form" class="space-y-4">
+       <div id="auth-name-field" class="hidden">
+        <label for="auth-name" class="block text-sm font-medium text-slate-700 mb-1">Full Name</label> <input id="auth-name" type="text" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500">
+       </div>
+       <div>
+        <label for="auth-email" class="block text-sm font-medium text-slate-700 mb-1">Email</label> <input id="auth-email" type="email" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500">
+       </div>
+       <div id="auth-pass-field">
+        <label for="auth-pass" class="block text-sm font-medium text-slate-700 mb-1">Password</label> <input id="auth-pass" type="password" class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500">
+       </div>
+       <div id="auth-error" class="hidden text-red-500 text-sm"></div>
+       <div id="auth-success" class="hidden text-green-600 text-sm"></div><button type="submit" class="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition">Sign In</button>
+      </form>
+      <div class="mt-4 text-center text-sm text-slate-500">
+       <button id="toggle-auth" onclick="toggleAuthMode()" class="text-blue-600 hover:underline">Don't have an account? Sign Up</button>
+      </div>
+     </div>
+    </div>
+   </section><!-- Chatbot -->
+   <div id="chatbot-toggle" onclick="toggleChat()" class="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 rounded-full shadow-lg shadow-blue-300 flex items-center justify-center cursor-pointer hover:scale-110 transition z-50">
+    <i data-lucide="message-circle" class="w-6 h-6 text-white"></i>
+   </div>
+   <div id="chatbot" class="hidden fixed bottom-24 right-6 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 flex flex-col" style="height:450px;">
+    <div class="flex items-center justify-between p-4 border-b border-slate-100">
+     <div class="flex items-center gap-2">
+      <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"><i data-lucide="bot" class="w-4 h-4 text-blue-600"></i>
+      </div>
+      <div>
+       <div class="text-sm font-semibold text-slate-800">
+        Career AI Assistant
+       </div>
+       <div class="text-xs text-green-500">
+        Online
+       </div>
+      </div>
+     </div><button onclick="toggleChat()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-3">
+     <div class="chat-bubble bg-blue-50 rounded-xl rounded-tl-none p-3 text-sm text-slate-700">
+      Hi! I'm your AI Career Assistant. Ask me anything about careers, certifications, or skill paths!
+     </div>
+    </div>
+    <div class="p-3 border-t border-slate-100">
+     <form id="chat-form" class="flex gap-2">
+      <input id="chat-input" type="text" placeholder="Ask about careers..." class="flex-1 px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500"> <button type="submit" class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"><i data-lucide="send" class="w-4 h-4"></i></button>
+     </form>
+    </div>
+   </div><!-- Footer -->
+   <footer class="bg-slate-900 text-slate-400 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div>
+       <div class="flex items-center gap-2 mb-4">
+        <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center"><i data-lucide="compass" class="w-5 h-5 text-white"></i>
+        </div><span class="font-bold text-white">Skill Bridge</span>
+       </div>
+       <p class="text-sm">Empowering individuals to find their perfect career through AI-driven insights and personalized guidance.</p>
+       <div class="mt-4 space-y-2 text-sm text-slate-400">
+        <p><span class="text-slate-300">Created by:</span> Shadab Ul Hassan</p>
+        <p><span class="text-slate-300">Email:</span> <a href="mailto:shadabulhassan@gmail.com" class="text-blue-400 hover:underline">shadabulhassan@gmail.com</a></p>
+        <p><span class="text-slate-300">Phone:</span> <a href="tel:+923140422836" class="text-blue-400 hover:underline">+92 314 0422836</a></p>
+       </div>
+      </div>
+      <div>
+       <h4 class="font-semibold text-white mb-3">Quick Links</h4>
+       <div class="space-y-2 text-sm">
+        <button onclick="showSection('home')" class="block hover:text-blue-400 transition">Home</button> <button onclick="showSection('assess')" class="block hover:text-blue-400 transition">Assessment</button> <button onclick="showSection('careers')" class="block hover:text-blue-400 transition">Careers</button> <button onclick="showSection('roadmaps')" class="block hover:text-blue-400 transition">Roadmaps</button>
+       </div>
+      </div>
+      <div>
+       <h4 class="font-semibold text-white mb-3">Connect</h4>
+       <div class="flex gap-3">
+        <div class="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-blue-600 transition cursor-pointer"><i data-lucide="twitter" class="w-4 h-4"></i>
+        </div>
+        <div class="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-blue-600 transition cursor-pointer"><i data-lucide="linkedin" class="w-4 h-4"></i>
+        </div>
+        <div class="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-blue-600 transition cursor-pointer"><i data-lucide="github" class="w-4 h-4"></i>
+        </div>
+        <div class="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center hover:bg-blue-600 transition cursor-pointer"><i data-lucide="mail" class="w-4 h-4"></i>
+        </div>
+       </div>
+      </div>
+     </div>
+     <div class="border-t border-slate-800 mt-8 pt-6 text-center text-xs">
+      © 2024 Skill Bridge by Shadab Ul Hassan. All rights reserved.
+     </div>
+    </div>
+   </footer>
+  </div>
+  <script>
+// ===== CAREER DATA =====
+const careers = [
+    { id:'cybersecurity', name:'Cybersecurity', icon:'shield', color:'#1e40af', salary:'$75K - $150K', scope:'Very High', desc:'Protect systems and data from cyber threats', skills:['Network Security','Penetration Testing','SIEM','Incident Response','Cryptography'], certs:['CompTIA Security+','CEH','CISSP','OSCP'], match_keywords:['security','networking','hacking','protection','firewall'] },
+    { id:'soc-analyst', name:'SOC Analyst', icon:'eye', color:'#1d4ed8', salary:'$55K - $100K', scope:'High', desc:'Monitor and respond to security incidents in real-time', skills:['SIEM Tools','Log Analysis','Threat Detection','Incident Response','Malware Analysis'], certs:['CompTIA CySA+','Splunk Certified','GCIA'], match_keywords:['security','monitoring','analysis','threats','logs'] },
+    { id:'ai-automation', name:'AI & Automation', icon:'cpu', color:'#7c3aed', salary:'$90K - $180K', scope:'Very High', desc:'Build intelligent systems that learn and automate', skills:['Python','Machine Learning','Deep Learning','TensorFlow','NLP'], certs:['Google AI Cert','AWS ML Specialty','TensorFlow Developer'], match_keywords:['ai','machine learning','automation','python','data'] },
+    { id:'python-dev', name:'Python Development', icon:'code', color:'#0891b2', salary:'$70K - $140K', scope:'High', desc:'Develop applications and scripts using Python', skills:['Python','Django/Flask','APIs','Data Structures','Testing'], certs:['PCEP','PCAP','AWS Developer'], match_keywords:['python','programming','development','coding','backend'] },
+    { id:'networking', name:'Networking', icon:'network', color:'#0d9488', salary:'$60K - $120K', scope:'High', desc:'Design and manage computer networks', skills:['TCP/IP','Routing','Switching','Firewalls','Cloud Networking'], certs:['CCNA','CCNP','CompTIA Network+'], match_keywords:['networking','router','switch','cisco','infrastructure'] },
+    { id:'cloud', name:'Cloud Computing', icon:'cloud', color:'#2563eb', salary:'$80K - $160K', scope:'Very High', desc:'Deploy and manage cloud infrastructure', skills:['AWS','Azure','GCP','Docker','Kubernetes'], certs:['AWS Solutions Architect','Azure Administrator','GCP Professional'], match_keywords:['cloud','aws','azure','devops','infrastructure'] },
+    { id:'digital-marketing', name:'Digital Marketing', icon:'megaphone', color:'#db2777', salary:'$45K - $100K', scope:'High', desc:'Grow brands through digital channels', skills:['SEO','Social Media','Content Marketing','Analytics','PPC'], certs:['Google Ads','HubSpot','Meta Blueprint'], match_keywords:['marketing','seo','social media','content','advertising'] },
+    { id:'web-dev', name:'Web Development', icon:'globe', color:'#ea580c', salary:'$60K - $130K', scope:'High', desc:'Build websites and web applications', skills:['HTML/CSS','JavaScript','React','Node.js','Databases'], certs:['Meta Front-End','Google UX','AWS Developer'], match_keywords:['web','html','javascript','frontend','react','design'] },
+    { id:'data-science', name:'Data Science', icon:'bar-chart-2', color:'#4f46e5', salary:'$85K - $160K', scope:'Very High', desc:'Extract insights from complex datasets', skills:['Python','Statistics','SQL','Visualization','Machine Learning'], certs:['IBM Data Science','Google Data Analytics','AWS Data Analytics'], match_keywords:['data','analytics','statistics','python','visualization'] },
+    { id:'ui-ux', name:'UI/UX Design', icon:'palette', color:'#e11d48', salary:'$60K - $130K', scope:'High', desc:'Design beautiful and intuitive user experiences', skills:['Figma','User Research','Prototyping','Design Systems','Accessibility'], certs:['Google UX Design','Nielsen Norman','Interaction Design Foundation'], match_keywords:['design','ui','ux','figma','creative','user'] },
+    { id:'devops', name:'DevOps', icon:'settings', color:'#059669', salary:'$80K - $155K', scope:'Very High', desc:'Bridge development and operations for faster delivery', skills:['CI/CD','Docker','Kubernetes','Terraform','Monitoring'], certs:['AWS DevOps','Docker Certified','CKA'], match_keywords:['devops','docker','kubernetes','deployment','automation','cloud'] },
+    { id:'freelancing', name:'Freelancing', icon:'briefcase', color:'#d97706', salary:'$30K - $200K+', scope:'High', desc:'Work independently on diverse projects', skills:['Communication','Time Management','Portfolio Building','Client Relations','Specialization'], certs:['Platform Certifications','Portfolio Projects','Client Testimonials'], match_keywords:['freelance','independent','remote','client','business'] }
+];
+
+const roadmaps = {
+    'cybersecurity': [{step:'Learn Networking Basics (TCP/IP, OSI)',level:'Beginner'},{step:'Study Linux & Command Line',level:'Beginner'},{step:'Get CompTIA Security+ Certified',level:'Intermediate'},{step:'Practice on TryHackMe & HackTheBox',level:'Intermediate'},{step:'Learn Penetration Testing',level:'Advanced'},{step:'Get CEH or OSCP Certification',level:'Advanced'},{step:'Apply for Security Analyst roles',level:'Career'}],
+    'soc-analyst': [{step:'Learn Networking & Protocols',level:'Beginner'},{step:'Understand SIEM Tools (Splunk, QRadar)',level:'Beginner'},{step:'Study Log Analysis & Threat Detection',level:'Intermediate'},{step:'Get CompTIA CySA+ Certified',level:'Intermediate'},{step:'Practice Incident Response',level:'Advanced'},{step:'Join SOC Team Internship',level:'Career'}],
+    'ai-automation': [{step:'Master Python Programming',level:'Beginner'},{step:'Learn Mathematics (Linear Algebra, Statistics)',level:'Beginner'},{step:'Study Machine Learning Fundamentals',level:'Intermediate'},{step:'Build Projects with TensorFlow/PyTorch',level:'Intermediate'},{step:'Specialize in NLP or Computer Vision',level:'Advanced'},{step:'Get Google AI or AWS ML Certification',level:'Advanced'}],
+    'python-dev': [{step:'Learn Python Basics & OOP',level:'Beginner'},{step:'Master Data Structures & Algorithms',level:'Beginner'},{step:'Learn Django or Flask Framework',level:'Intermediate'},{step:'Build REST APIs',level:'Intermediate'},{step:'Learn Testing & Deployment',level:'Advanced'},{step:'Contribute to Open Source',level:'Advanced'}],
+    'networking': [{step:'Study CompTIA Network+ Material',level:'Beginner'},{step:'Learn TCP/IP, Subnetting, DNS',level:'Beginner'},{step:'Practice with Packet Tracer',level:'Intermediate'},{step:'Get CCNA Certified',level:'Intermediate'},{step:'Learn Network Security',level:'Advanced'},{step:'Study Cloud Networking',level:'Advanced'}],
+    'cloud': [{step:'Learn Linux Fundamentals',level:'Beginner'},{step:'Choose a Cloud Provider (AWS/Azure/GCP)',level:'Beginner'},{step:'Get AWS Cloud Practitioner',level:'Intermediate'},{step:'Learn Docker & Containers',level:'Intermediate'},{step:'Master Kubernetes',level:'Advanced'},{step:'Get Solutions Architect Certification',level:'Advanced'}],
+    'digital-marketing': [{step:'Learn SEO Fundamentals',level:'Beginner'},{step:'Study Social Media Marketing',level:'Beginner'},{step:'Get Google Ads Certified',level:'Intermediate'},{step:'Learn Content Marketing & Copywriting',level:'Intermediate'},{step:'Master Analytics & A/B Testing',level:'Advanced'},{step:'Build Personal Brand',level:'Advanced'}],
+    'web-dev': [{step:'Learn HTML, CSS, JavaScript',level:'Beginner'},{step:'Master Responsive Design',level:'Beginner'},{step:'Learn React or Vue.js',level:'Intermediate'},{step:'Study Node.js & Databases',level:'Intermediate'},{step:'Build Full-Stack Projects',level:'Advanced'},{step:'Deploy on Cloud Platforms',level:'Advanced'}],
+    'data-science': [{step:'Learn Python & SQL',level:'Beginner'},{step:'Study Statistics & Probability',level:'Beginner'},{step:'Master Pandas & NumPy',level:'Intermediate'},{step:'Learn Data Visualization',level:'Intermediate'},{step:'Study Machine Learning',level:'Advanced'},{step:'Build Portfolio Projects',level:'Advanced'}],
+    'ui-ux': [{step:'Learn Design Principles',level:'Beginner'},{step:'Master Figma',level:'Beginner'},{step:'Study User Research Methods',level:'Intermediate'},{step:'Learn Prototyping & Testing',level:'Intermediate'},{step:'Build Design System',level:'Advanced'},{step:'Create Case Study Portfolio',level:'Advanced'}],
+    'devops': [{step:'Learn Linux & Scripting',level:'Beginner'},{step:'Understand CI/CD Concepts',level:'Beginner'},{step:'Learn Docker & Containers',level:'Intermediate'},{step:'Master Kubernetes',level:'Intermediate'},{step:'Study Infrastructure as Code (Terraform)',level:'Advanced'},{step:'Get AWS DevOps Certification',level:'Advanced'}],
+    'freelancing': [{step:'Choose Your Specialization',level:'Beginner'},{step:'Build Portfolio & Profile',level:'Beginner'},{step:'Learn Client Communication',level:'Intermediate'},{step:'Start on Upwork/Fiverr',level:'Intermediate'},{step:'Build Long-term Client Relationships',level:'Advanced'},{step:'Scale to Agency',level:'Advanced'}]
+};
+
+const videos = [
+    { career:'cybersecurity', title:'Cybersecurity Full Course 2024', channel:'NetworkChuck', url:'https://youtube.com/watch?v=cybersec' },
+    { career:'cybersecurity', title:'How to Become a Cybersecurity Analyst', channel:'SimpliLearn', url:'https://youtube.com/watch?v=cyberanalyst' },
+    { career:'ai-automation', title:'Machine Learning Full Course', channel:'freeCodeCamp', url:'https://youtube.com/watch?v=mlfull' },
+    { career:'ai-automation', title:'AI for Everyone by Andrew Ng', channel:'DeepLearning.AI', url:'https://youtube.com/watch?v=aieveryone' },
+    { career:'python-dev', title:'Python Full Course for Beginners', channel:'Programming with Mosh', url:'https://youtube.com/watch?v=pythonfull' },
+    { career:'web-dev', title:'Full Stack Web Development 2024', channel:'Traversy Media', url:'https://youtube.com/watch?v=fullstack' },
+    { career:'cloud', title:'AWS Certified Cloud Practitioner', channel:'freeCodeCamp', url:'https://youtube.com/watch?v=awscloud' },
+    { career:'data-science', title:'Data Science Full Course', channel:'Edureka', url:'https://youtube.com/watch?v=dsfull' },
+    { career:'devops', title:'DevOps Roadmap 2024', channel:'TechWorld with Nana', url:'https://youtube.com/watch?v=devopsroad' },
+    { career:'ui-ux', title:'UI/UX Design Tutorial', channel:'DesignCourse', url:'https://youtube.com/watch?v=uiux' },
+    { career:'digital-marketing', title:'Digital Marketing Full Course', channel:'Ahrefs', url:'https://youtube.com/watch?v=dmfull' },
+    { career:'networking', title:'CompTIA Network+ Full Course', channel:'Professor Messer', url:'https://youtube.com/watch?v=netplus' }
+];
+
+// ===== APP STATE =====
+let currentSection = 'home';
+let authMode = 'login';
+let currentUser = null;
+
+// ===== NAVIGATION =====
+function showSection(id) {
+    document.querySelectorAll('[id^="section-"]').forEach(s => s.classList.add('hidden'));
+    const el = document.getElementById('section-' + id);
+    if (el) { el.classList.remove('hidden'); el.scrollIntoView({behavior:'smooth',block:'start'}); }
+    currentSection = id;
+}
+
+function toggleMobileMenu() {
+    document.getElementById('mobile-menu').classList.toggle('hidden');
+}
+
+// ===== ASSESSMENT =====
+document.getElementById('assess-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const education = document.getElementById('education').value;
+    const field = document.getElementById('field').value.toLowerCase();
+    const skills = document.getElementById('skills').value.toLowerCase();
+    const interests = document.getElementById('interests').value.toLowerCase();
+    const strengths = document.getElementById('strengths').value.toLowerCase();
+    const worktype = document.querySelector('input[name="worktype"]:checked')?.value || '';
+
+    if (!education || !skills || !interests) {
+        showInlineError('assess-form', 'Please fill in at least Education, Skills, and Interests.');
+        return;
+    }
+
+    document.getElementById('assess-btn-text').textContent = 'Analyzing...';
+
+    setTimeout(() => {
+        const combined = `${field} ${skills} ${interests} ${strengths}`.toLowerCase();
+        const results = careers.map(c => {
+            let score = 0;
+            c.match_keywords.forEach(kw => { if (combined.includes(kw)) score += 20; });
+            if (worktype === 'Freelance' && c.id === 'freelancing') score += 15;
+            if (worktype === 'Remote' && ['ai-automation','python-dev','web-dev','data-science','devops','freelancing'].includes(c.id)) score += 10;
+            score = Math.min(score, 95);
+            score = Math.max(score, Math.floor(Math.random()*20)+15);
+            return { ...c, matchScore: score };
+        }).sort((a,b) => b.matchScore - a.matchScore).slice(0, 5);
+
+        renderResults(results);
+        document.getElementById('assess-btn-text').textContent = 'Analyze My Profile with AI';
+    }, 1500);
+});
+
+function renderResults(results) {
+    const container = document.getElementById('results');
+    container.innerHTML = '<h3 class="text-2xl font-bold text-slate-800 text-center">Your Top Career Matches</h3>';
+    results.forEach((r, i) => {
+        container.innerHTML += `
+        <div class="glass-card rounded-xl p-6 shadow-lg slide-up stagger-${i+1}">
+            <div class="flex items-start justify-between flex-wrap gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background:${r.color}20"><i data-lucide="${r.icon}" style="color:${r.color}" class="w-5 h-5"></i></div>
+                    <div><h4 class="font-bold text-slate-800">${r.name}</h4><p class="text-xs text-slate-500">${r.desc}</p></div>
+                </div>
+                <div class="text-right"><span class="text-2xl font-bold text-blue-600">${r.matchScore}%</span><div class="text-xs text-slate-500">Match</div></div>
+            </div>
+            <div class="mt-4 w-full bg-slate-100 rounded-full h-2"><div class="match-bar h-2 rounded-full bg-blue-600" style="width:${r.matchScore}%"></div></div>
+            <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
+                <div><span class="text-slate-500">Salary:</span> <span class="font-medium text-slate-700">${r.salary}</span></div>
+                <div><span class="text-slate-500">Future Scope:</span> <span class="font-medium text-slate-700">${r.scope}</span></div>
+            </div>
+            <div class="mt-3"><span class="text-xs font-medium text-slate-500">Key Skills:</span><div class="flex flex-wrap gap-1.5 mt-1">${r.skills.map(s=>`<span class="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-md">${s}</span>`).join('')}</div></div>
+            <div class="mt-3"><span class="text-xs font-medium text-slate-500">Certifications:</span><div class="flex flex-wrap gap-1.5 mt-1">${r.certs.map(c=>`<span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 text-xs rounded-md">${c}</span>`).join('')}</div></div>
+        </div>`;
+    });
+    container.classList.remove('hidden');
+    lucide.createIcons();
+}
+
+// ===== CAREERS GRID =====
+function renderCareers() {
+    const grid = document.getElementById('career-grid');
+    grid.innerHTML = careers.map(c => `
+        <div class="glass-card rounded-xl p-6 shadow-md hover:shadow-xl transition cursor-pointer group" onclick="showSection('roadmaps');document.getElementById('roadmap-select').value='${c.id}';showRoadmap('${c.id}')">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition group-hover:scale-110" style="background:${c.color}15">
+                <i data-lucide="${c.icon}" style="color:${c.color}" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-bold text-slate-800 mb-1">${c.name}</h3>
+            <p class="text-sm text-slate-500 mb-3">${c.desc}</p>
+            <div class="flex justify-between text-xs text-slate-500">
+                <span>${c.salary}</span><span class="text-blue-600 font-medium">View Roadmap ?</span>
+            </div>
+        </div>`).join('');
+}
+
+// ===== ROADMAPS =====
+function populateRoadmapSelect() {
+    const select = document.getElementById('roadmap-select');
+    careers.forEach(c => { select.innerHTML += `<option value="${c.id}">${c.name}</option>`; });
+}
+
+function showRoadmap(id) {
+    const container = document.getElementById('roadmap-content');
+    if (!id || !roadmaps[id]) { container.innerHTML = ''; return; }
+    const steps = roadmaps[id];
+    const career = careers.find(c => c.id === id);
+    const levelColors = { 'Beginner':'bg-green-100 text-green-700', 'Intermediate':'bg-yellow-100 text-yellow-700', 'Advanced':'bg-red-100 text-red-700', 'Career':'bg-blue-100 text-blue-700' };
+    container.innerHTML = `<div class="glass-card rounded-xl p-6 shadow-lg mb-6"><h3 class="font-bold text-lg text-slate-800 mb-2">${career.name} Roadmap</h3><p class="text-sm text-slate-500">Follow these steps from beginner to career-ready</p></div>` +
+        steps.map((s,i) => `
+        <div class="roadmap-line pl-10 pb-4 relative slide-up stagger-${Math.min(i+1,4)}">
+            <div class="absolute left-2 top-1 w-7 h-7 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center z-10">${i+1}</div>
+            <div class="glass-card rounded-lg p-4 shadow-sm">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                    <span class="font-medium text-slate-800 text-sm">${s.step}</span>
+                    <span class="px-2 py-0.5 rounded text-xs font-medium ${levelColors[s.level]}">${s.level}</span>
+                </div>
+            </div>
+        </div>`).join('');
+    lucide.createIcons();
+}
+
+// ===== VIDEOS =====
+function renderVideos() {
+    const grid = document.getElementById('video-grid');
+    grid.innerHTML = videos.map(v => {
+        const career = careers.find(c => c.id === v.career);
+        return `
+        <div class="glass-card rounded-xl overflow-hidden shadow-md hover:shadow-xl transition">
+            <div class="h-40 flex items-center justify-center" style="background:linear-gradient(135deg,${career?.color || '#2563eb'}22,${career?.color || '#2563eb'}08)">
+                <div class="w-14 h-14 rounded-full bg-white/80 flex items-center justify-center shadow"><i data-lucide="play" class="w-6 h-6 text-blue-600 ml-1"></i></div>
+            </div>
+            <div class="p-4">
+                <h4 class="font-semibold text-sm text-slate-800 line-clamp-2">${v.title}</h4>
+                <p class="text-xs text-slate-500 mt-1">${v.channel}</p>
+                <a href="${v.url}" target="_blank" rel="noopener noreferrer" class="mt-3 inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:underline">
+                    Watch on YouTube <i data-lucide="external-link" class="w-3 h-3"></i>
+                </a>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ===== AUTH =====
+function toggleAuthMode() {
+    authMode = authMode === 'login' ? 'signup' : 'login';
+    document.getElementById('auth-title').textContent = authMode === 'login' ? 'Sign In' : 'Sign Up';
+    document.getElementById('auth-name-field').classList.toggle('hidden', authMode === 'login');
+    document.getElementById('toggle-auth').textContent = authMode === 'login' ? "Don't have an account? Sign Up" : "Already have an account? Sign In";
+    document.getElementById('auth-error').classList.add('hidden');
+    document.getElementById('auth-success').classList.add('hidden');
+}
+
+document.getElementById('auth-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const email = document.getElementById('auth-email').value;
+    const pass = document.getElementById('auth-pass').value;
+    if (!email || !pass) { showAuthError('Please fill all fields'); return; }
+    if (authMode === 'signup') {
+        const name = document.getElementById('auth-name').value;
+        if (!name) { showAuthError('Please enter your name'); return; }
+        localStorage.setItem('career_user', JSON.stringify({name,email}));
+        showAuthSuccess('Account created successfully!');
+        currentUser = {name, email};
+    } else {
+        const saved = JSON.parse(localStorage.getItem('career_user') || 'null');
+        if (saved && saved.email === email) { currentUser = saved; showAuthSuccess(`Welcome back, ${saved.name}!`); }
+        else { currentUser = {name:'User', email}; showAuthSuccess('Signed in successfully!'); }
+    }
+    document.getElementById('auth-btn').textContent = currentUser.name;
+    setTimeout(() => showSection('home'), 1000);
+});
+
+function showAuthError(msg) { const el = document.getElementById('auth-error'); el.textContent = msg; el.classList.remove('hidden'); }
+function showAuthSuccess(msg) { const el = document.getElementById('auth-success'); el.textContent = msg; el.classList.remove('hidden'); document.getElementById('auth-error').classList.add('hidden'); }
+
+function showInlineError(formId, msg) {
+    let errEl = document.getElementById(formId + '-error');
+    if (!errEl) { errEl = document.createElement('div'); errEl.id = formId + '-error'; errEl.className = 'text-red-500 text-sm mt-2'; document.getElementById(formId).appendChild(errEl); }
+    errEl.textContent = msg;
+    setTimeout(() => errEl.textContent = '', 3000);
+}
+
+// ===== CHATBOT =====
+function toggleChat() { document.getElementById('chatbot').classList.toggle('hidden'); }
+
+const chatResponses = {
+    'career': "Based on current trends, top careers include Cybersecurity, AI/ML, Cloud Computing, and Data Science. Would you like me to help you choose one based on your skills?",
+    'certification': "Great certifications to start with: CompTIA Security+ (cybersecurity), AWS Cloud Practitioner (cloud), Google Data Analytics (data), or Meta Front-End Developer (web dev). Which field interests you?",
+    'beginner': "As a beginner, I recommend: 1) Pick ONE field that excites you, 2) Follow a structured roadmap, 3) Build projects, 4) Get certified, 5) Apply for internships. Want a specific roadmap?",
+    'salary': "Tech salaries vary: Entry-level $50-70K, Mid-level $80-120K, Senior $120-180K+. Fields like AI, Cloud, and Cybersecurity tend to pay the highest. Want details on a specific career?",
+    'skill': "Top skills in demand: Python, Cloud (AWS/Azure), Data Analysis, Cybersecurity, JavaScript, and AI/ML. Focus on one primary skill and build complementary ones around it.",
+    'freelance': "To start freelancing: 1) Build a strong portfolio, 2) Start on Upwork/Fiverr with competitive rates, 3) Deliver quality work, 4) Collect testimonials, 5) Gradually raise your rates.",
+    'default': "I can help you with career choices, certifications, skill recommendations, salary info, and learning paths. Try asking about specific careers like 'cybersecurity' or 'data science'!"
+};
+
+document.getElementById('chat-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const input = document.getElementById('chat-input');
+    const msg = input.value.trim();
+    if (!msg) return;
+    addChatMessage(msg, 'user');
+    input.value = '';
+    setTimeout(() => {
+        const lower = msg.toLowerCase();
+        let response = chatResponses.default;
+        for (const [key, val] of Object.entries(chatResponses)) {
+            if (lower.includes(key)) { response = val; break; }
+        }
+        // Check for specific career names
+        const matchedCareer = careers.find(c => lower.includes(c.id.replace('-',' ')) || lower.includes(c.name.toLowerCase()));
+        if (matchedCareer) {
+            response = `**${matchedCareer.name}** is a great choice! ${matchedCareer.desc}. Salary range: ${matchedCareer.salary}. Key skills needed: ${matchedCareer.skills.slice(0,3).join(', ')}. Future scope: ${matchedCareer.scope}. Would you like to see the full roadmap?`;
+        }
+        addChatMessage(response, 'bot');
+    }, 800);
+});
+
+function addChatMessage(text, sender) {
+    const container = document.getElementById('chat-messages');
+    const div = document.createElement('div');
+    div.className = sender === 'user' ? 'chat-bubble bg-blue-600 text-white rounded-xl rounded-tr-none p-3 text-sm ml-auto' : 'chat-bubble bg-blue-50 rounded-xl rounded-tl-none p-3 text-sm text-slate-700';
+    div.textContent = text;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+// ===== INIT =====
+function init() {
+    renderCareers();
+    populateRoadmapSelect();
+    renderVideos();
+    lucide.createIcons();
+    const saved = JSON.parse(localStorage.getItem('career_user') || 'null');
+    if (saved) { currentUser = saved; document.getElementById('auth-btn').textContent = saved.name; }
+}
+
+// ===== ELEMENT SDK =====
+const defaultConfig = {
+    site_title: 'Skill Bridge',
+    hero_heading: 'Discover Your Perfect Career Path',
+    hero_subtext: 'AI-powered career guidance tailored to your unique profile. Get personalized suggestions, learning roadmaps, and expert recommendations.',
+    background_color: '#f8fafc',
+    surface_color: '#ffffff',
+    text_color: '#1e293b',
+    primary_action: '#2563eb',
+    secondary_action: '#64748b',
+    font_family: 'DM Sans',
+    font_size: 16
+};
+
+window.elementSdk.init({
+    defaultConfig,
+    onConfigChange: async (config) => {
+        const title = config.site_title || defaultConfig.site_title;
+        const heading = config.hero_heading || defaultConfig.hero_heading;
+        const subtext = config.hero_subtext || defaultConfig.hero_subtext;
+        const bg = config.background_color || defaultConfig.background_color;
+        const surface = config.surface_color || defaultConfig.surface_color;
+        const text = config.text_color || defaultConfig.text_color;
+        const primary = config.primary_action || defaultConfig.primary_action;
+        const secondary = config.secondary_action || defaultConfig.secondary_action;
+        const font = config.font_family || defaultConfig.font_family;
+        const size = config.font_size || defaultConfig.font_size;
+
+        document.getElementById('nav-title').textContent = title;
+        document.getElementById('hero-heading').innerHTML = heading.replace('Career Path', '<br><span style="color:' + primary + '">Career Path</span>');
+        document.getElementById('hero-subtext').textContent = subtext;
+        document.querySelector('.app-shell').style.backgroundColor = bg;
+        document.body.style.fontFamily = `${font}, DM Sans, sans-serif`;
+        document.body.style.fontSize = size + 'px';
+        document.querySelectorAll('.glass-card').forEach(el => { el.style.backgroundColor = surface + 'dd'; });
+        document.querySelectorAll('h1,h2,h3,h4,.font-bold').forEach(el => { el.style.color = text; });
+    },
+    mapToCapabilities: (config) => ({
+        recolorables: [
+            { get: () => config.background_color || defaultConfig.background_color, set: (v) => { config.background_color = v; window.elementSdk.setConfig({background_color:v}); }},
+            { get: () => config.surface_color || defaultConfig.surface_color, set: (v) => { config.surface_color = v; window.elementSdk.setConfig({surface_color:v}); }},
+            { get: () => config.text_color || defaultConfig.text_color, set: (v) => { config.text_color = v; window.elementSdk.setConfig({text_color:v}); }},
+            { get: () => config.primary_action || defaultConfig.primary_action, set: (v) => { config.primary_action = v; window.elementSdk.setConfig({primary_action:v}); }},
+            { get: () => config.secondary_action || defaultConfig.secondary_action, set: (v) => { config.secondary_action = v; window.elementSdk.setConfig({secondary_action:v}); }}
+        ],
+        borderables: [],
+        fontEditable: { get: () => config.font_family || defaultConfig.font_family, set: (v) => { config.font_family = v; window.elementSdk.setConfig({font_family:v}); }},
+        fontSizeable: { get: () => config.font_size || defaultConfig.font_size, set: (v) => { config.font_size = v; window.elementSdk.setConfig({font_size:v}); }}
+    }),
+    mapToEditPanelValues: (config) => new Map([
+        ['site_title', config.site_title || defaultConfig.site_title],
+        ['hero_heading', config.hero_heading || defaultConfig.hero_heading],
+        ['hero_subtext', config.hero_subtext || defaultConfig.hero_subtext]
+    ])
+});
+
+init();
+</script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ffd530c5a169ed6',t:'MTc3OTQ2ODY3Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
