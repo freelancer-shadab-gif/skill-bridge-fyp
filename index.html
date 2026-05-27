@@ -104,12 +104,21 @@
     <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100 shadow-sm" role="navigation" aria-label="Main navigation">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center" aria-hidden="true">
-                        <i data-lucide="compass" class="w-5 h-5 text-white"></i>
-                    </div>
-                    <span id="nav-title" class="font-bold text-lg text-slate-800">Skill Bridge</span>
-                </div>
+                <div 
+    class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition"
+    onclick="showSection('home')"
+    role="button"
+    tabindex="0"
+    aria-label="Go to homepage"
+>
+    <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center" aria-hidden="true">
+        <i data-lucide="compass" class="w-5 h-5 text-white"></i>
+    </div>
+
+    <span id="nav-title" class="font-bold text-lg text-slate-800">
+        Skill Bridge
+    </span>
+</div>
                 <div class="hidden md:flex items-center gap-6">
                     <button onclick="showSection('home')" class="nav-link text-sm font-medium text-slate-600 hover:text-blue-600 transition" aria-label="Go to Home">Home</button>
                     <button onclick="showSection('assess')" class="nav-link text-sm font-medium text-slate-600 hover:text-blue-600 transition" aria-label="Take Career Assessment">Assessment</button>
@@ -433,6 +442,8 @@ function debugLog(label, data) {
         console.log(`[${new Date().toLocaleTimeString()}] ${label}:`, data);
     }
 }
+
+
 
 // ============ CAREER DATA ============
 const careers = [
